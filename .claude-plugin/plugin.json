@@ -1,0 +1,12 @@
+{
+  "name": "spec-mockup",
+  "description": "Generate clickable HTML wireframes/mockups, PNG screenshots and a report from a text plan or spec; supports features added to an existing app.",
+  "version": "0.3.0",
+  "keywords": [
+    "mockup",
+    "wireframe",
+    "spec",
+    "plan",
+    "prototype"
+  ]
+}

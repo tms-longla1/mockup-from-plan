@@ -1,0 +1,25 @@
+{
+  "name": "spec-mockup",
+  "owner": {
+    "name": "spec-mockup maintainers"
+  },
+  "metadata": {
+    "description": "Generate HTML wireframes/mockups and PNG screenshots from a text plan or spec."
+  },
+  "plugins": [
+    {
+      "name": "spec-mockup",
+      "source": "./",
+      "description": "Generate clickable HTML wireframes/mockups, PNG screenshots and a report from a plan or spec; supports features added to an existing app.",
+      "version": "0.3.0",
+      "category": "design",
+      "keywords": [
+        "mockup",
+        "wireframe",
+        "spec",
+        "plan",
+        "prototype"
+      ]
+    }
+  ]
+}
