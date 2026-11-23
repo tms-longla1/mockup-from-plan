@@ -86,22 +86,33 @@ Private repository: whoever installs needs read access to the repository and git
 
 ## Usage
 
-Open Claude Code in your project folder and run `/spec-mockup:create`, with or without arguments. Claude asks at most one round of questions, in a dialog, and only for what it cannot work out:
+Open Claude Code in your project folder and run `/spec-mockup:create`, with or without arguments. Before starting, Claude asks in one dialog, skipping anything your request already answers:
 
-- which document to use, if you did not name one;
-- what to produce: HTML mockup with images, HTML mockup only, images only, or wireframe only;
-- where the source code or design files are, if the document is about an existing app and you did not give them.
+1. **Quick sketch or like the real app**, always first (see the table below);
+2. which document to use, if you did not name one;
+3. what to produce: HTML mockup only, HTML mockup with images, images only, or wireframe only.
+
+Only if you choose "like the real app" for an existing app and did not give its source code or design files, it asks one short follow-up for their path.
 
 While it works, it posts one line per finished stage. The plugin's scripts are pre-approved for the duration of the command, so you are not asked to confirm each step.
 
 The result is written to `mockups/` in your project. If you do not want to commit the results, add `mockups/` to the project's `.gitignore`.
 
+### Quick sketch or the app's real look
+
+| Say | What you get | Speed |
+|---|---|---|
+| "quick sketch" / "phác nhanh" (default) | Neutral style. On existing screens only the area the feature changes is drawn in detail; the rest is labeled blocks. Only the states the document names | Fastest: no reading of the app's source or design files |
+| "like the real app" / "giống app thật" | The app's colors, menu and current screens, with the new parts outlined, and the states the feature needs | Slower: reads the app's look first and draws more |
+
+Start with a quick sketch to agree on the flow, then `/spec-mockup:update <mockup> like the real app` when you need the detailed version.
+
 ### Outputs
 
 | What you say | What you get |
 |---|---|
-| "HTML mockup with images" (default) | `dist/mockup.html` and images, including images that outline the new parts |
-| "HTML only" | `dist/mockup.html` |
+| "HTML only" (fastest) | `dist/mockup.html` |
+| "HTML mockup with images" | `dist/mockup.html` and images, including images that outline the new parts |
 | "images only" | PNG images |
 | "wireframe only" | `dist/wireframe.html` and its images |
 | "everything" | Mockup and wireframe, HTML and images |
@@ -110,9 +121,11 @@ To change the outputs later: `/spec-mockup:update <mockup> images only`.
 
 ### Viewing the result
 
-Open `mockups/<feature-name>/dist/mockup.html` in a browser:
+Open `mockups/<feature-name>/dist/mockup.html` in a browser. It opens on an **overview page** that introduces the feature: a short summary, the screen roadmap of each flow with a thumbnail of every screen (click one to open it), what the feature changes, the assumptions and open questions, and how to read the mockup. The same page is saved as `00-overview.png` and embedded in `REPORT.md`.
 
-- left column: the flows and screens;
+From there:
+
+- left column: the overview, then the flows and screens;
 - state bar: switch the state of the screen (empty, error, ...);
 - "New parts" button: outlines what the feature adds to an existing screen;
 - "Notes" button and right column: the spec requirements the screen shows, the assumptions, the open questions.

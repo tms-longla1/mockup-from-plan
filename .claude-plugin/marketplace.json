@@ -11,7 +11,7 @@
       "name": "spec-mockup",
       "source": "./",
       "description": "Generate clickable HTML wireframes/mockups, PNG screenshots and a report from a plan or spec; supports features added to an existing app.",
-      "version": "0.3.0",
+      "version": "0.5.0",
       "category": "design",
       "keywords": [
         "mockup",

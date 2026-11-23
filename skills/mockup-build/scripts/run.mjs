@@ -15,9 +15,9 @@ import { checkFeature, parseOutputs, outputsText, ALL_OUTPUTS } from './check.mj
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const L = {
-  vi: { pass: 'ĐẠT', fail: 'CÓ LỖI', unverified: 'CHƯA KIỂM TRA BẰNG ẢNH', status: 'Trạng thái', mode: 'Chế độ', outputs: 'Kết quả', inputs: 'Đầu vào', role: 'Vai trò', type: 'Loại', file: 'File', screens: 'Màn hình', screen: 'Màn hình', kind: 'Loại', isNew: 'Mới', existing: 'Đã có', device: 'Thiết bị', states: 'Trạng thái', refs: 'Yêu cầu', reqs: 'Yêu cầu trong spec', source: 'Nguồn', shownOn: 'Thể hiện ở', assumptions: 'Giả định', questions: 'Câu hỏi mở', checks: 'Tự kiểm tra', errors: 'Lỗi', warnings: 'Cảnh báo', none: 'Không có', images: 'Ảnh', note: 'Bản minh họa sinh từ plan/spec để hình dung tính năng. Không phải thiết kế cuối cùng.' },
-  en: { pass: 'PASS', fail: 'FAILED', unverified: 'NOT VERIFIED IN BROWSER', status: 'Status', mode: 'Mode', outputs: 'Outputs', inputs: 'Inputs', role: 'Role', type: 'Type', file: 'File', screens: 'Screens', screen: 'Screen', kind: 'Kind', isNew: 'New', existing: 'Existing', device: 'Device', states: 'States', refs: 'Requirements', reqs: 'Spec requirements', source: 'Source', shownOn: 'Shown on', assumptions: 'Assumptions', questions: 'Open questions', checks: 'Self-check', errors: 'Errors', warnings: 'Warnings', none: 'None', images: 'Images', note: 'Illustration generated from the plan/spec. Not a final design.' },
-  ja: { pass: '合格', fail: 'エラーあり', unverified: '画像での確認未実施', status: 'ステータス', mode: 'モード', outputs: '成果物', inputs: '入力', role: '役割', type: '種別', file: 'ファイル', screens: '画面', screen: '画面', kind: '区分', isNew: '新規', existing: '既存', device: 'デバイス', states: '状態', refs: '要件', reqs: '仕様の要件', source: '出典', shownOn: '該当画面', assumptions: '仮定', questions: '未決事項', checks: 'セルフチェック', errors: 'エラー', warnings: '警告', none: 'なし', images: '画像', note: 'プラン・仕様から生成したイメージです。最終デザインではありません。' }
+  vi: { pass: 'ĐẠT', fail: 'CÓ LỖI', unverified: 'CHƯA KIỂM TRA BẰNG ẢNH', status: 'Trạng thái', mode: 'Chế độ', outputs: 'Kết quả', inputs: 'Đầu vào', role: 'Vai trò', type: 'Loại', file: 'File', screens: 'Màn hình', screen: 'Màn hình', kind: 'Loại', isNew: 'Mới', existing: 'Đã có', device: 'Thiết bị', states: 'Trạng thái', refs: 'Yêu cầu', reqs: 'Yêu cầu trong spec', source: 'Nguồn', shownOn: 'Thể hiện ở', assumptions: 'Giả định', questions: 'Câu hỏi mở', checks: 'Tự kiểm tra', errors: 'Lỗi', warnings: 'Cảnh báo', none: 'Không có', images: 'Ảnh', note: 'Bản minh họa sinh từ plan/spec để hình dung tính năng. Không phải thiết kế cuối cùng.', roadmap: 'Lộ trình màn hình' },
+  en: { pass: 'PASS', fail: 'FAILED', unverified: 'NOT VERIFIED IN BROWSER', status: 'Status', mode: 'Mode', outputs: 'Outputs', inputs: 'Inputs', role: 'Role', type: 'Type', file: 'File', screens: 'Screens', screen: 'Screen', kind: 'Kind', isNew: 'New', existing: 'Existing', device: 'Device', states: 'States', refs: 'Requirements', reqs: 'Spec requirements', source: 'Source', shownOn: 'Shown on', assumptions: 'Assumptions', questions: 'Open questions', checks: 'Self-check', errors: 'Errors', warnings: 'Warnings', none: 'None', images: 'Images', note: 'Illustration generated from the plan/spec. Not a final design.', roadmap: 'Screen roadmap' },
+  ja: { pass: '合格', fail: 'エラーあり', unverified: '画像での確認未実施', status: 'ステータス', mode: 'モード', outputs: '成果物', inputs: '入力', role: '役割', type: '種別', file: 'ファイル', screens: '画面', screen: '画面', kind: '区分', isNew: '新規', existing: '既存', device: 'デバイス', states: '状態', refs: '要件', reqs: '仕様の要件', source: '出典', shownOn: '該当画面', assumptions: '仮定', questions: '未決事項', checks: 'セルフチェック', errors: 'エラー', warnings: '警告', none: 'なし', images: '画像', note: 'プラン・仕様から生成したイメージです。最終デザインではありません。', roadmap: '画面ロードマップ' }
 };
 const cell = (s) => String(s ?? '').replace(/\|/g, '\\|').replace(/\n+/g, ' ');
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
@@ -34,8 +34,9 @@ function writeReport(dir, M, inputs, data) {
   const p = (s = '') => lines.push(s);
   p(`# ${M.feature}`); p();
   p(`> ${t.note}`); p();
+  if (M.summary) { p(M.summary); p(); }
   p(`- **${t.status}**: ${label}`);
-  p(`- **${t.mode}**: ${M.mode}`); p();
+  p(`- **${t.mode}**: ${M.mode}${inputs && inputs.detail === 'quick' ? ' (quick sketch)' : ''}`); p();
   p(`## ${t.outputs}`); p();
   for (const f of data.outputs) p(`- [${f}](${f})`);
   if (!data.outputs.length) p(t.none);
@@ -49,6 +50,12 @@ function writeReport(dir, M, inputs, data) {
     groups.set(key, (groups.get(key) || 0) + 1);
   }
   for (const [key, n] of groups) { const [role, type, file] = key.split('|'); p(`| ${role} | ${type} | ${cell(file)}${n > 1 ? ` (${n})` : ''} |`); }
+  p();
+  p(`## ${t.roadmap}`); p();
+  const nameOf = Object.fromEntries(M.screens.map((s) => [s.id, s.name]));
+  for (const f of M.flows) p(`- **${f.name}**: ${f.screens.map((id) => nameOf[id] || id).join(' → ')}`);
+  const ov = data.shots.find((x) => x.screen === 'overview' && x.fidelity === data.selection.fidelity[0]);
+  if (ov) { p(); p(`![${t.roadmap}](${ov.file})`); }
   p();
   p(`## ${t.screens}`); p();
   p(`| # | ${t.screen} | ${t.kind} | ${t.device} | ${t.states} | ${t.refs} |`); p('|---|---|---|---|---|---|');
@@ -151,16 +158,18 @@ function main() {
     const b = node('build.mjs', [dir, '--fidelity', fidArg]);
     if (b.code !== 0) { data.status = 'fail'; code = 1; data.errors.push('build.mjs failed: ' + b.out.trim().split('\n').pop()); }
     else {
-      // png not selected: still capture one set into a temp folder for the author to review; it is not an output.
-      const shootArgs = [dir, '--fidelity', wantPng ? fidArg : want.fidelity[0]];
+      // Review sheets (every screen and state on a few images) always go to a temp folder for the author; they are not an output.
+      // Without png in the selection, only the check and the sheets run.
+      reviewDir = path.join(os.tmpdir(), 'mockup-review-' + M.slug);
+      const shootArgs = [dir, '--fidelity', wantPng ? fidArg : want.fidelity[0], '--sheet-dir', reviewDir];
       if (wantPng && want.highlight) shootArgs.push('--highlight');
-      if (!wantPng) { reviewDir = path.join(os.tmpdir(), 'mockup-review-' + M.slug); fs.rmSync(reviewDir, { recursive: true, force: true }); shootArgs.push('--png-dir', reviewDir); }
+      if (!wantPng) shootArgs.push('--verify-only');
       const s = node('shoot.mjs', shootArgs);
       const sj = path.join(dir, 'dist', 'shoot.json');
       if (s.code === 3) { data.status = 'unverified'; code = 3; data.warnings.push('No browser found: runtime errors were not checked and no images were captured.'); fs.rmSync(sj, { force: true }); }
       else if (fs.existsSync(sj)) {
         const r = JSON.parse(fs.readFileSync(sj, 'utf8'));
-        data.errors.push(...r.errors); data.warnings.push(...r.warnings); data.shots = wantPng ? r.shots : [];
+        data.errors.push(...r.errors); data.warnings.push(...r.warnings); data.shots = wantPng ? r.shots : []; data.sheets = r.sheets || [];
         if (s.code !== 0 || r.errors.length) { data.status = 'fail'; code = 1; }
       } else { data.status = 'fail'; code = 1; data.errors.push('shoot.mjs failed: ' + s.out.trim().split('\n').pop()); }
     }
@@ -192,7 +201,7 @@ function main() {
   for (const e of data.errors) console.log('ERROR     ' + e);
   console.log(`\nResult:  ${data.status.toUpperCase()} — ${M.screens.length} screen(s), ${data.shots.length} image(s), ${data.errors.length} error(s), ${data.warnings.length} warning(s)`);
   console.log('Outputs: ' + outputsText(want));
-  if (reviewDir && data.status !== 'fail') console.log('Review images (temporary, not an output): ' + reviewDir);
+  for (const f of data.sheets || []) console.log('Review:  ' + f + '  (temporary, not an output)');
   console.log('Report:  ' + path.join(dir, 'REPORT.md'));
   // Clickable links: most terminals open file:// URLs on click.
   const links = data.outputs.map((f) => pathToFileURL(path.join(dir, f)).href);

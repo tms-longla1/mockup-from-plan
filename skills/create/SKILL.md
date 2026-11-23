@@ -29,15 +29,17 @@ The output follows one standard whatever the inputs are: [references/output-cont
    - No browser: continue, and tell the user up front that images and the visual check will be skipped until Chrome or Edge is installed (or `CHROME_PATH` is set).
 2. **Understand the request** in "The user's request" above. Split it into paths (they exist on disk) and wishes (anything else, such as "chỉ cần ảnh", "source ở ../web").
    - A path matches an existing mockup's primary document, or the user names an existing mockup: this is an update. Follow the `update` skill instead and stop here.
-3. **Ask once, only what is missing**:
-   - No document given: ask which document to use. Offer the top candidates from `status.mjs` as options (the user can still type another path). If there are none, ask for a path.
-   - Outputs not stated: ask what to produce. Options: "Mockup HTML + ảnh" (`mockup,html,png,highlight`), "Chỉ mockup HTML" (`mockup,html`), "Chỉ ảnh" (`mockup,png,highlight`), "Chỉ wireframe" (`wireframe`). Adapt the labels to the user's language. The user can also answer "tất cả" (`all`).
-   - The document mentions existing app files or screens but no source code, design files or screenshots were given: ask for their path, with an option "Không có, dựng theo mô tả".
-   - If you cannot ask (non-interactive session), use the first option of each question and say so in the final message.
-   - Mapping wishes to outputs: "chỉ cần ảnh" / "images only" is `mockup,png,highlight`; "wireframe thôi" is `wireframe`; "HTML để bấm thử" is `mockup,html`; "tất cả" is `all`. No fidelity named means both; no format named means both.
-4. **Normalize the inputs**: `node <scripts>/inputs.mjs <path...> --outputs <selection>`. Use exactly the folder, slug and mode it prints. Override with `--slug` or `--mode` only when the user asks or the script is clearly wrong, and mention it at the end.
+3. **Ask before any long work**, in one AskUserQuestion call, in this order:
+   1. **Detail level: always the first question**, unless the request already says it ("nhanh", "phác", "quick", "sketch" mean `quick`; "giống thật", "chi tiết", "giống app" mean `full`). Two options, labels and descriptions in the user's language:
+      - "Phác nhanh" (`quick`), listed first: "Giao diện trung tính, chỉ vẽ chi tiết phần tính năng thay đổi, phần còn lại là khối có nhãn. Không đọc source hay thiết kế của app. Nhanh nhất, hợp để chốt luồng."
+      - "Giống app thật" (`full`): "Dựng lại màu, menu và các màn hình hiện có của app rồi thêm phần mới. Đọc source hoặc file thiết kế nên lâu hơn, hợp để duyệt giao diện."
+   2. **Document**, only if none was given: offer the top candidates from `status.mjs` as options (the user can still type another path). If there are none, ask for a path.
+   3. **Outputs**, only if not stated. Options: "Chỉ mockup HTML" (`mockup,html`, fastest), "Mockup HTML + ảnh" (`mockup,html,png,highlight`), "Chỉ ảnh" (`mockup,png,highlight`), "Chỉ wireframe" (`wireframe`). The user can also answer "tất cả" (`all`). Mapping plain wishes: "chỉ cần ảnh" / "images only" is `mockup,png,highlight`; "wireframe thôi" is `wireframe`; "HTML để bấm thử" is `mockup,html`; "tất cả" is `all`. No fidelity named means both; no format named means both.
+   - **Source of the app's look**: only when the answer is `full`, the document is about an existing app, and no source code, design files or screenshots were given. Ask it as one short follow-up after the first round, with an option "Không có, dựng theo mô tả". Never ask it for `quick`.
+   - Adapt every label to the user's language. If you cannot ask (non-interactive session), use `quick`, the first document candidate and `mockup,html`, and say so in the final message.
+4. **Normalize the inputs**: `node <scripts>/inputs.mjs <path...> --outputs <selection> --detail <quick|full>`. Use exactly the folder, slug and mode it prints. Override with `--slug` or `--mode` only when the user asks or the script is clearly wrong, and mention it at the end.
 5. **Invoke `spec-to-screens`** to create `screens.json`. If it finds that the document changes nothing in the UI, stop and tell the user; do not draw screens for a backend-only change. Post the stage line with the counts.
-6. **If the mode is `existing-app`, invoke `ui-context`** to capture the app's look and the current screens.
+6. **If the mode is `existing-app` and the detail is `full`, invoke `ui-context`** to capture the app's look and the current screens. Skip it for `quick`.
 7. **Invoke `mockup-build`** to write the screens and run `run.mjs`. Its last run uses `--open` so the result opens in the browser, unless the user asked not to or only `png` was selected.
 8. **Final message**, described below.
 
@@ -48,7 +50,7 @@ Every generated file lives in `mockups/<slug>/`. Do not modify the app's source 
 Short, in the user's language, in this order:
 
 1. One line with the result: passed, failed, or built without the visual check. Then the links printed by `run.mjs` on its `Open:` lines, and the path to `REPORT.md`.
-2. What was drawn: number of screens and states; which screens are new and which already existed.
+2. What was drawn: the screen roadmap as one line per flow (`Screen A → Screen B → Screen C`), the number of states, and which screens are new and which already existed. Mention that the HTML opens on an overview page that introduces the feature.
 3. The assumptions and the open questions, as a short list. This is the most valuable part; never drop it.
 4. What in the document is not shown and why (for example backend logic), in one line.
 5. Remaining errors or warnings and any skipped step, only if there are some.

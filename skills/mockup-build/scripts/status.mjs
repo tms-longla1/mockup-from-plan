@@ -50,7 +50,7 @@ function mockups(root) {
     }
     const status = rep ? rep.status : (fs.existsSync(path.join(dir, 'screens.json')) ? 'not built' : 'not started');
     console.log(`- ${d}: ${rep ? rep.feature : '(no report yet)'}`);
-    console.log(`    status: ${status}; mode: ${inputs.mode}; outputs: ${outputsText(inputs.outputs)}; primary: ${inputs.primary}`);
+    console.log(`    status: ${status}; mode: ${inputs.mode}; detail: ${inputs.detail || 'full'}; outputs: ${outputsText(inputs.outputs)}; primary: ${inputs.primary}`);
     if (rep) console.log(`    ${rep.screens} screen(s), ${rep.states} state(s), ${rep.assumptions} assumption(s), ${rep.openQuestions} open question(s)`);
     console.log(`    documents: ${changed.length ? changed.join('; ') : 'unchanged since the last run'}`);
   }

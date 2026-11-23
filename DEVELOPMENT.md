@@ -40,6 +40,10 @@ node $S/check.mjs mockups/<name>                       # static check only
 | `shoot.mjs` | Opens the built file in headless Chrome, catches runtime errors, captures the PNG images |
 | `run.mjs` | Runs check, build and shoot, then writes `REPORT.md`, `dist/report.json` and `mockups/index.html` |
 
+## Capture speed
+
+`shoot.mjs` drives one headless Chrome page through the runtime's `window.__mockup` API over `--remote-debugging-pipe`, so all images come from one browser process. Set `MOCKUP_SLOW_CAPTURE=1` to force the old fallback (one browser process per image) when debugging capture problems.
+
 ## Releasing
 
 Bump `version` in both `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`, commit and push. Users get it with `/plugin marketplace update spec-mockup`.

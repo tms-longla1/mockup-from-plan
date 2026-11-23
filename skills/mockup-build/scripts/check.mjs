@@ -74,7 +74,7 @@ export function checkFeature(dir) {
   try { M = JSON.parse(fs.readFileSync(manifestPath, 'utf8')); }
   catch (e) { return { errors: ['screens.json is not valid JSON: ' + e.message], warnings, manifest: null }; }
 
-  for (const k of ['feature', 'slug', 'mode', 'device', 'lang', 'flows', 'screens', 'specRefs', 'assumptions']) {
+  for (const k of ['feature', 'summary', 'slug', 'mode', 'device', 'lang', 'flows', 'screens', 'specRefs', 'assumptions']) {
     if (M[k] === undefined) E(`screens.json is missing the "${k}" field`);
   }
   if (errors.length) return { errors, warnings, manifest: M };
@@ -82,6 +82,8 @@ export function checkFeature(dir) {
   if (!['desktop', 'mobile'].includes(M.device)) E('device must be "desktop" or "mobile"');
   if (!Array.isArray(M.sources) || !M.sources.length) E('sources must list at least one plan/spec file that was read');
   if (!['vi', 'en', 'ja'].includes(M.lang)) E('lang must be "vi", "en" or "ja"');
+  if (typeof M.summary !== 'string' || M.summary.trim().length < 20) E('summary must be two to four sentences saying what the feature is and why, taken from the documents');
+  else if (M.summary.length > 700) W('summary is long; keep it to two to four sentences');
   if (M.slug !== path.basename(dir)) E(`slug "${M.slug}" must equal the folder name "${path.basename(dir)}"`);
 
   // inputs.json is the shared starting point: slug, mode and the source list must agree with it.
@@ -100,21 +102,22 @@ export function checkFeature(dir) {
   }
 
   const icons = JSON.parse(fs.readFileSync(path.join(HERE, '..', 'assets', 'icons.json'), 'utf8'));
+  const quick = !!(inputs && inputs.detail === 'quick');
   const themePath = path.join(dir, 'theme.json');
   let theme = {};
   if (fs.existsSync(themePath)) {
     try { theme = JSON.parse(fs.readFileSync(themePath, 'utf8')); }
     catch (e) { E('theme.json is not valid JSON: ' + e.message); }
-    if (M.mode === 'existing-app') {
+    if (M.mode === 'existing-app' && !quick) {
       for (const t of ['c-bg', 'c-surface', 'c-border', 'c-text', 'c-text-muted', 'c-primary', 'font']) {
         if (!(theme.tokens || {})[t]) E(`theme.json is missing a required token: ${t}`);
       }
-    } else if (Object.keys(theme.tokens || {}).length || fs.existsSync(path.join(dir, 'custom.css'))) {
+    } else if (M.mode === 'new-product' && (Object.keys(theme.tokens || {}).length || fs.existsSync(path.join(dir, 'custom.css')))) {
       W('mode "new-product" should keep the neutral kit: remove the tokens in theme.json and custom.css unless the user asked for specific colors.');
     }
     if (!theme.source) E('theme.json is missing "source" (where the look was taken from)');
   } else {
-    E(M.mode === 'existing-app' ? 'theme.json is missing (run the ui-context skill first)' : 'theme.json is missing (inputs.mjs creates it for new-product)');
+    E(M.mode === 'existing-app' && !quick ? 'theme.json is missing (run the ui-context skill first)' : 'theme.json is missing (inputs.mjs creates it for new-product and quick sketches)');
   }
 
   const refIds = new Set(M.specRefs.map((r) => r.id));
@@ -140,6 +143,7 @@ export function checkFeature(dir) {
   for (const s of M.screens) {
     if (!ID.test(s.id || '')) E(`Invalid screen id (lowercase letters, digits and hyphens only): ${JSON.stringify(s.id)}`);
     if (screenIds.has(s.id)) E(`Duplicate screen id: ${s.id}`);
+    if (s.id === 'overview') E('The screen id "overview" is reserved for the generated overview page');
     screenIds.add(s.id);
     if (!s.name) E(`Screen ${s.id} is missing name`);
     if (typeof s.existing !== 'boolean') E(`Screen ${s.id} is missing existing (true/false)`);
@@ -199,6 +203,7 @@ export function checkFeature(dir) {
 
     for (const v of attrValues(html, 'data-goto')) {
       const [sc, stt] = v.split('#');
+      if (sc === 'overview') continue;
       if (!screenIds.has(sc)) E(`${at}: data-goto="${v}" points to an unknown screen`);
       else if (stt && !stateIds[sc].has(stt)) E(`${at}: data-goto="${v}" points to an unknown state`);
     }

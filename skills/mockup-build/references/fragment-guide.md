@@ -67,6 +67,7 @@ Use the existing classes before writing your own CSS. Use `style=""` only for sm
 | Buttons | `m-btn` (+`--primary`, `--danger`, `--danger-outline`, `--ghost`, `--sm`, `--block`, the `disabled` attribute) |
 | Forms | `m-field` (+`is-error`), `m-label`, `m-req`, `m-input`, `m-select`, `m-textarea`, `m-help`, `m-error`, `m-check`, `m-switch`, `m-input-group` |
 | Content | `m-card` (`__head`, `__body`, `__foot`), `m-section-title`, `m-table-wrap`, `m-table` (rows `is-selected`, `is-muted`), `m-badge` (+`--primary`, `--success`, `--warning`, `--danger`, `--solid`), `m-tabs`, `m-tab` (+`is-active`), `m-list`, `m-list-item`, `m-avatar`, `m-img`, `m-pagination`, `m-page` |
+| Placeholder | `m-placeholder` (+`--tall`): a labeled block standing in for an unchanged part of an existing screen in a quick sketch |
 | Feedback | `m-alert` (+`--info`, `--success`, `--warning`, `--danger`), `m-empty`, `m-skeleton` (+`--lg`), `m-spinner`, `m-progress` |
 | Overlays | `m-modal` > `m-modal__box` (+`--sm`, `--lg`) > `m-modal__head`, `m-modal__body`, `m-modal__foot`; `m-drawer`; `m-toast` (+`--success`, `--danger`); `m-anchor` > `m-menu` > `m-menu__item` |
 | Mobile | `m-mobile`, `m-mobile__bar`, `m-mobile__body`, `m-mobile__foot`, `m-tabbar`, `m-tabbar__item` (+`is-active`) |

@@ -3,7 +3,7 @@
 // design files, screenshots, source code), classify them, then decide the slug and the mode
 // by fixed rules. The result is mockups/<slug>/inputs.json, the shared starting point of every run.
 //
-// First run: node inputs.mjs <path...> [--out mockups] [--slug x] [--mode existing-app|new-product] [--outputs mockup,png]
+// First run: node inputs.mjs <path...> [--out mockups] [--slug x] [--mode existing-app|new-product] [--outputs mockup,png] [--detail quick|full]
 // Rerun:     node inputs.mjs --dir mockups/<slug> [<extra-path...>] [--outputs ...]
 import fs from 'node:fs';
 import path from 'node:path';
@@ -20,12 +20,13 @@ const PRIMARY_ORDER = ['plan', 'spec', 'requirements', 'screen-description', 'do
 
 function parseArgs() {
   const a = process.argv.slice(2);
-  const o = { paths: [], out: 'mockups', dir: null, slug: null, mode: null, outputs: null };
+  const o = { paths: [], out: 'mockups', dir: null, slug: null, mode: null, outputs: null, detail: null };
   for (let i = 0; i < a.length; i++) {
     if (a[i] === '--out') o.out = a[++i];
     else if (a[i] === '--dir') o.dir = a[++i];
     else if (a[i] === '--slug') o.slug = a[++i];
     else if (a[i] === '--mode') o.mode = a[++i];
+    else if (a[i] === '--detail') o.detail = a[++i];
     else if (a[i] === '--outputs') { try { o.outputs = parseOutputs(a[++i]); } catch (e) { console.error(e.message); process.exit(2); } }
     else o.paths.push(a[i]);
   }
@@ -34,6 +35,7 @@ function parseArgs() {
     process.exit(2);
   }
   if (o.mode && !['existing-app', 'new-product'].includes(o.mode)) { console.error('--mode must be existing-app or new-product'); process.exit(2); }
+  if (o.detail && !['quick', 'full'].includes(o.detail)) { console.error('--detail must be quick or full'); process.exit(2); }
   return o;
 }
 
@@ -178,25 +180,28 @@ function main() {
   fs.mkdirSync(path.join(dir, 'screens', '_partials'), { recursive: true });
 
   const outputs = o.outputs || (prev && prev.outputs) || { ...ALL_OUTPUTS };
-  const result = { version: 1, slug, mode, modeReason, outputs, primary: primary.path, requested: wanted, inputs };
+  // quick: a fast sketch in the neutral kit, existing screens shown only around what changes. full: looks like the real app.
+  const detail = o.detail || (prev && prev.detail) || 'full';
+  const result = { version: 1, slug, mode, modeReason, detail, outputs, primary: primary.path, requested: wanted, inputs };
   fs.writeFileSync(path.join(dir, 'inputs.json'), JSON.stringify(result, null, 2) + '\n');
 
-  // new-product always gets a theme.json pointing at the kit, so every mockup folder has the same set of files.
+  // new-product and quick sketches always get a theme.json pointing at the kit, so every mockup folder has the same set of files.
   const theme = path.join(dir, 'theme.json');
-  if (mode === 'new-product' && !fs.existsSync(theme)) {
-    fs.writeFileSync(theme, JSON.stringify({ source: 'kit-default', allowEmoji: false, notes: 'New product: uses the neutral kit.', tokens: {} }, null, 2) + '\n');
+  if ((mode === 'new-product' || detail === 'quick') && !fs.existsSync(theme)) {
+    fs.writeFileSync(theme, JSON.stringify({ source: 'kit-default', allowEmoji: false, notes: mode === 'new-product' ? 'New product: uses the neutral kit.' : 'Quick sketch: uses the neutral kit instead of the app look.', tokens: {} }, null, 2) + '\n');
   }
 
   console.log(`Folder:   ${rel(dir)}`);
   console.log(`Slug:     ${slug}`);
   console.log(`Mode:     ${mode} (${modeReason})`);
   console.log(`Primary:  ${primary.path} (${primary.type})`);
+  console.log(`Detail:   ${detail}`);
   console.log(`Outputs:  ${outputsText(outputs)}`);
   const counts = {};
   for (const it of inputs) counts[it.type] = (counts[it.type] || 0) + 1;
   console.log('Inputs:   ' + Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(', '));
   for (const it of inputs.filter((x) => x.large)) console.log(`WARNING   Large file, read only the relevant sections: ${it.path} (${Math.round(it.bytes / 1024)} KB)`);
-  if (mode === 'existing-app' && !hasUi) console.log('WARNING   Mode is existing-app but there is no UI source (source code, design files, screenshots). Ask the user for a path; if there is none, build from the description and record it as an assumption.');
+  if (mode === 'existing-app' && !hasUi && detail === 'full') console.log('WARNING   Mode is existing-app but there is no UI source (source code, design files, screenshots). Ask the user for a path; if there is none, build from the description and record it as an assumption.');
 
   if (prev) {
     const before = Object.fromEntries(prev.inputs.map((x) => [x.path, x.sha256]));

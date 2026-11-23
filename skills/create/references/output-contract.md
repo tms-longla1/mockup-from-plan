@@ -13,8 +13,9 @@ mockups/
     screens/<id>.html        One file per screen                               (ui-context, mockup-build)
     screens/_partials/       Shared app chrome
     REPORT.md                Report for people                                 (run.mjs)
-    dist/mockup.html         Version styled like the app
+    dist/mockup.html         Version styled like the app; opens on the generated overview page
     dist/wireframe.html      Grayscale version with the same content
+    dist/png/<fidelity>/00-overview.png                 Overview: summary, screen roadmap, changes, open questions
     dist/png/<fidelity>/NN-<screen>--<state>.png
     dist/png/<fidelity>/NN-<screen>--<state>--new.png   New parts outlined
     dist/report.json         Report for machines
@@ -32,7 +33,8 @@ mockups/
 | State names | Use the standard name when the concept matches: `default`, `empty`, `loading`, `error`, `validation-error`, `no-permission`, `disabled`, `confirm`, `success` | checked by `check.mjs` |
 | Image size | Desktop 1440 wide, at least 900 high. Mobile 390 wide (2x image), at least 844 high | `shoot.mjs` |
 | Images | When `png` is selected: every screen in every state, for each selected fidelity | checked by `run.mjs` |
-| Report structure | Status, outputs, inputs, screens, requirements, assumptions, open questions, self-check, images | `run.mjs` |
+| Overview page | First page of every HTML output and `00-overview.png`: summary, screen roadmap with thumbnails per flow, what changes, assumptions and open questions, how to read the mockup. Generated from `screens.json`, never written by hand | runtime, `shoot.mjs` |
+| Report structure | Status, summary, outputs, roadmap, inputs, screens, requirements, assumptions, open questions, self-check, images | `run.mjs` |
 | Overall status | `pass`: no errors and all images present. `fail`: errors remain. `unverified`: built, but no browser was available | `run.mjs` |
 
 ## Output selection

@@ -3,6 +3,7 @@
 ```json
 {
   "feature": "Feature name, written for the people viewing the mockup",
+  "summary": "Two to four sentences: what the feature is, who it is for, where it lives, what changes for the user.",
   "slug": "feature-name",
   "sources": ["plans/plan-x.md", "specs/123-y.md"],
   "mode": "existing-app",
@@ -10,7 +11,7 @@
   "lang": "en",
   "uiLang": "ja",
   "flows": [
-    { "id": "configure", "name": "Flow name", "screens": ["vendor-list", "vendor-form"] }
+    { "id": "configure", "name": "Flow name", "goal": "One sentence: who does what, and why.", "screens": ["vendor-list", "vendor-form"] }
   ],
   "screens": [
     {
@@ -43,6 +44,7 @@
 | Field | Required | Notes |
 |---|---|---|
 | `feature` | yes | Feature name for viewers |
+| `summary` | yes | Two to four sentences from the documents: what the feature is, who it is for, where it lives, what changes. Opens the overview page and the report |
 | `slug`, `mode` | yes | Copied from `inputs.json`; do not choose them yourself |
 | `sources` | yes | Every file read to build this inventory. Must include the primary document and only files listed in `inputs.json` |
 | `device` | yes | `desktop` or `mobile`: the device of most screens |
@@ -50,7 +52,8 @@
 | `lang` | yes | `vi`, `en` or `ja`: language of the viewer chrome and the notes |
 | `uiLang` | no | Language of the UI labels when it differs from `lang` |
 | `flows[].screens` | yes | Screen ids in the order they are visited |
-| `screens[].id`, `states[].id` | yes | Lowercase letters, digits, hyphens. The screen id is also the fragment file name |
+| `flows[].goal` | no | One sentence shown above the flow on the overview page |
+| `screens[].id`, `states[].id` | yes | Lowercase letters, digits, hyphens. The screen id is also the fragment file name. `overview` is reserved |
 | `screens[].name`, `screens[].purpose`, `states[].name` | yes | Written in the `lang` language |
 | `screens[].existing` | yes | `true` if the screen already exists in the app. Always `false` in `new-product` |
 | `screens[].states` | yes | At least one. The first state is the one shown by default |

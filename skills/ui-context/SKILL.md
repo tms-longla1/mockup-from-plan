@@ -28,6 +28,8 @@ This skill only reproduces the current state. The additions are made by the `moc
    - the files of the screens with `existing: true` in `screens.json`. Plans usually name the files they change; search by those names.
 
    Do not scan the whole repository. If about 15 files are not enough, stop reading and record what is missing as an assumption.
+
+   Large design HTML files (tens of KB): read the `<head>`/style part and the sidebar once, from one file, then only the markup of the screens you reproduce. Skip their scripts and sample-data blocks.
 3. **Write `theme.json`**: map the app's colors, fonts, font size, radius and sidebar width onto the kit tokens.
 4. **Note the icon style.** If the app uses an icon library, pick the closest icons in `assets/icons.json` of `mockup-build`. If the app uses emoji as icons, keep the emoji and set `"allowEmoji": true`.
 5. **Write the chrome** into `_partials/`: the real app's menu order and labels, with the selected menu item marked `is-active`.
