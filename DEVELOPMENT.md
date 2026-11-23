@@ -46,4 +46,12 @@ node $S/check.mjs mockups/<name>                       # static check only
 
 ## Releasing
 
-Bump `version` in both `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`, commit and push. Users get it with `/plugin marketplace update spec-mockup`.
+Commit and push to `main`. That is the release.
+
+`plugin.json` and `marketplace.json` deliberately have no `version` field. Without one, Claude Code uses the commit SHA as the version, so every pushed commit reaches users through auto-update or `claude plugin update`. Consequences:
+
+- Anything pushed to `main` ships. Work on a branch and merge when it is ready.
+- Do not add a `version` field back unless you also bump it on every release: with a fixed version, a push without a bump is invisible to users (`already at the latest version`).
+- `claude plugin validate` warns that no version is specified; that warning is expected.
+
+To hold users on a tested version instead, publish a release branch or tag and have them add the marketplace as `tms-longla1/mockup-from-plan#<branch-or-tag>`.
