@@ -74,7 +74,7 @@ On older versions, install in two steps:
 ```json
 {
   "extraKnownMarketplaces": {
-    "spec-mockup": { "source": { "source": "github", "repo": "tms-longla1/mockup-from-plan" } }
+    "spec-mockup": { "source": { "source": "github", "repo": "tms-longla1/mockup-from-plan" }, "autoUpdate": true }
   },
   "enabledPlugins": { "spec-mockup@spec-mockup": true }
 }
@@ -82,7 +82,21 @@ On older versions, install in two steps:
 
 Private repository: whoever installs needs read access to the repository and git/GitHub credentials on their machine.
 
-**Updating**: `/plugin marketplace update spec-mockup`.
+## Updating
+
+Every commit pushed to `main` is a new version; there is nothing to uninstall or reinstall.
+
+**Automatic (recommended)**: in Claude Code run `/plugin`, open the **Marketplaces** tab, select `spec-mockup` and turn on auto-update. Claude Code then checks for a new version in the background during a session and installs it; it is used from the next launch, or right away after `/reload-plugins`. Auto-update is off by default for marketplaces outside Anthropic's.
+
+**Manual**, whenever you want the latest version:
+
+```bash
+claude plugin update spec-mockup@spec-mockup
+```
+
+or in a session: `/plugin` → **Installed** → `spec-mockup` → **Update now**. Then start a new session or run `/reload-plugins`.
+
+**Private repository**: background updates use your git credentials without prompting. Set them up once with `gh auth login` and `gh auth setup-git` (an SSH key loaded in your SSH agent also works). A `GITHUB_TOKEN` variable alone is not enough.
 
 ## Usage
 

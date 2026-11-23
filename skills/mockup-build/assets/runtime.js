@@ -166,23 +166,73 @@
       n.hidden = n.getAttribute('data-state').split(/\s+/).indexOf(want) < 0;
     });
   }
-  function mark(target, kind, text, side, base, row) {
-    var r = target.getBoundingClientRect();
-    var m = el('span', { 'class': 'v-mark v-mark--' + kind, text: text });
-    m.style.top = Math.max(0, r.top - base.top - 19 - row * 17) + 'px';
-    if (side === 'left') m.style.left = Math.max(0, r.left - base.left) + 'px';
-    else m.style.right = Math.max(0, base.right - r.right) + 'px';
-    marksEl.appendChild(m);
+  // Marks (NEW, R.., A..) live in one overlay layer inside the canvas, positioned in canvas-content
+  // coordinates. Each marked element gets one group of chips at its top-left corner; groups that would
+  // collide are moved aside. Elements inside a scrolled-away part of an inner scroll area get no mark,
+  // and every scroll inside the canvas redraws the layer, so marks stay on their element.
+  function clipOf(n) {
+    var c = canvas.getBoundingClientRect();
+    var box = { left: c.left, top: c.top, right: c.right, bottom: c.bottom };
+    for (var p = n.parentElement; p && p !== canvas; p = p.parentElement) {
+      var cs = getComputedStyle(p);
+      if (cs.overflowX !== 'visible' || cs.overflowY !== 'visible') {
+        var r = p.getBoundingClientRect();
+        box = { left: Math.max(box.left, r.left), top: Math.max(box.top, r.top), right: Math.min(box.right, r.right), bottom: Math.min(box.bottom, r.bottom) };
+      }
+    }
+    return box;
   }
   function drawMarks() {
     marksEl.innerHTML = '';
+    // Collapse the layer first, so its old size does not keep the canvas scroll area large.
+    marksEl.style.width = '0';
+    marksEl.style.height = '0';
+    if (!st.hl && !st.notes) return;
     var base = canvas.getBoundingClientRect();
-    if (st.hl) all('[data-new]', screenEl).filter(visible).forEach(function (n) { mark(n, 'new', T.isNew, 'left', base, 0); });
-    if (st.notes) all('[data-spec],[data-assume]', screenEl).filter(visible).forEach(function (n) {
-      var row = 0;
-      if (n.hasAttribute('data-spec')) { mark(n, 'spec', n.getAttribute('data-spec'), 'right', base, row); row += 1; }
-      if (n.hasAttribute('data-assume')) mark(n, 'assume', n.getAttribute('data-assume'), 'right', base, row);
+    var sx = canvas.scrollLeft, sy = canvas.scrollTop;
+    var width = canvas.scrollWidth;
+    marksEl.style.width = width + 'px';
+    marksEl.style.height = canvas.scrollHeight + 'px';
+    var placed = [];
+    var hit = function (x, y, w, h) {
+      for (var i = 0; i < placed.length; i++) {
+        var p = placed[i];
+        if (x < p.x + p.w + 3 && x + w + 3 > p.x && y < p.y + p.h + 1 && y + h + 1 > p.y) return p;
+      }
+      return null;
+    };
+    all('[data-new],[data-spec],[data-assume]', screenEl).filter(visible).forEach(function (n) {
+      var chips = [];
+      if (st.hl && n.hasAttribute('data-new')) chips.push(['new', T.isNew]);
+      if (st.notes && n.hasAttribute('data-spec')) chips.push(['spec', n.getAttribute('data-spec')]);
+      if (st.notes && n.hasAttribute('data-assume')) chips.push(['assume', n.getAttribute('data-assume')]);
+      if (!chips.length) return;
+      var r = n.getBoundingClientRect();
+      var c = clipOf(n);
+      // The element's top-left corner must be inside every scroll area around it.
+      var ax = Math.max(r.left, c.left), ay = Math.max(r.top, c.top);
+      if (r.right < c.left || r.left > c.right || r.bottom < c.top || r.top > c.bottom || ay > Math.min(r.bottom, c.bottom) - 4) return;
+      var group = el('span', { 'class': 'v-markgroup' }, chips.map(function (ch) { return el('span', { 'class': 'v-mark v-mark--' + ch[0], text: ch[1] }); }));
+      marksEl.appendChild(group);
+      var w = group.offsetWidth, h = group.offsetHeight;
+      var x0 = ax - base.left + sx;
+      var x = x0, y = ay - base.top + sy - h - 2;
+      // No room above (top of the canvas, or the top edge of the scroll area holding it): sit just inside the element.
+      if (y < sy || y - sy + base.top < c.top) y = ay - base.top + sy + 2;
+      for (var guard = 0, p; guard < 40 && (p = hit(x, y, w, h)); guard++) {
+        x = p.x + p.w + 4;
+        if (x + w > width) { x = x0; y = p.y + p.h + 2; }
+      }
+      group.style.left = Math.max(0, Math.min(x, width - w)) + 'px';
+      group.style.top = Math.max(0, y) + 'px';
+      placed.push({ x: x, y: y, w: w, h: h });
     });
+  }
+  var marksQueued = false;
+  function queueMarks() {
+    if (marksQueued) return;
+    marksQueued = true;
+    requestAnimationFrame(function () { marksQueued = false; drawMarks(); });
   }
   // Dialogs and drawers use position: absolute, so they do not stretch the screen; grow its height to fit.
   function fit() {
@@ -413,6 +463,10 @@
   });
   screenEl.addEventListener('submit', function (e) { e.preventDefault(); });
   window.addEventListener('resize', refresh);
+  // Scroll events do not bubble, but they pass through ancestors in the capture phase: this catches the
+  // canvas itself and any scroll area inside a fragment.
+  canvas.addEventListener('scroll', queueMarks, true);
+  if (window.ResizeObserver) new ResizeObserver(queueMarks).observe(screenEl);
 
   buildNav();
 

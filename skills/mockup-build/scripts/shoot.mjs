@@ -54,7 +54,7 @@ export function findBrowser() {
 }
 
 // ---- Fast driver: one browser, one page, Chrome DevTools Protocol over --remote-debugging-pipe.
-async function cdpDriver(browser) {
+export async function cdpDriver(browser) {
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'mockup-shot-'));
   const child = spawn(browser, [...BASE_FLAGS, '--remote-debugging-pipe', '--user-data-dir=' + profile, 'about:blank'], { stdio: ['ignore', 'ignore', 'ignore', 'pipe', 'pipe'] });
   const toChrome = child.stdio[3];
@@ -113,15 +113,21 @@ async function cdpDriver(browser) {
 
   return {
     kind: 'cdp',
+    evaluate, capture, viewport,
     async load(url) {
       pageErrors.length = 0;
-      const loaded = new Promise((resolve) => {
-        const fn = (m) => { if (m.sessionId === sessionId && m.method === 'Page.loadEventFired') { listeners.splice(listeners.indexOf(fn), 1); resolve(); } };
-        listeners.push(fn);
-      });
+      const go = async (u) => {
+        const loaded = new Promise((resolve) => {
+          const fn = (m) => { if (m.sessionId === sessionId && m.method === 'Page.loadEventFired') { listeners.splice(listeners.indexOf(fn), 1); resolve(); } };
+          listeners.push(fn);
+        });
+        await page('Page.navigate', { url: u });
+        await Promise.race([loaded, new Promise((r) => setTimeout(r, 10000))]);
+      };
       await viewport(SIZE.desktop.width, SIZE.desktop.minHeight, 1);
-      await page('Page.navigate', { url });
-      await loaded;
+      // Leave the current document first: a URL that differs only by #hash would not reload the runtime.
+      await go('about:blank');
+      await go(url);
       for (let i = 0; i < 50 && !(await evaluate('!!window.__mockup')); i++) await new Promise((r) => setTimeout(r, 50));
       if (!(await evaluate('!!window.__mockup'))) throw new Error('the runtime did not start');
     },
