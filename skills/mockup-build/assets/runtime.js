@@ -463,9 +463,10 @@
   });
   screenEl.addEventListener('submit', function (e) { e.preventDefault(); });
   window.addEventListener('resize', refresh);
-  // Scroll events do not bubble, but they pass through ancestors in the capture phase: this catches the
-  // canvas itself and any scroll area inside a fragment.
-  canvas.addEventListener('scroll', queueMarks, true);
+  // Scroll events do not bubble, but they pass through ancestors in the capture phase. Listening on the
+  // document catches every scroll: the stage around the screen, the canvas, and scroll areas inside a
+  // fragment. The stage matters too: sticky elements stay put while the content scrolls under them.
+  document.addEventListener('scroll', queueMarks, true);
   if (window.ResizeObserver) new ResizeObserver(queueMarks).observe(screenEl);
 
   buildNav();
