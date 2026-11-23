@@ -464,9 +464,17 @@
   screenEl.addEventListener('submit', function (e) { e.preventDefault(); });
   window.addEventListener('resize', refresh);
   // Scroll events do not bubble, but they pass through ancestors in the capture phase. Listening on the
-  // document catches every scroll: the stage around the screen, the canvas, and scroll areas inside a
-  // fragment. The stage matters too: sticky elements stay put while the content scrolls under them.
-  document.addEventListener('scroll', queueMarks, true);
+  // document catches every scroll: the stage around the screen, the canvas, scroll areas inside a fragment,
+  // and the stage scroll under sticky elements. The browser scrolls on its own thread, so a mark redrawn
+  // per scroll event always trails its element by a frame or two; instead the marks are hidden while
+  // scrolling and redrawn once it stops.
+  var scrollTimer = null;
+  document.addEventListener('scroll', function () {
+    if (!st.hl && !st.notes) return;
+    marksEl.classList.add('is-scrolling');
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(function () { drawMarks(); marksEl.classList.remove('is-scrolling'); }, 150);
+  }, true);
   if (window.ResizeObserver) new ResizeObserver(queueMarks).observe(screenEl);
 
   buildNav();

@@ -34,6 +34,7 @@ body { background: #e9ebee; color: #1d2129; font: 13px/1.5 -apple-system, BlinkM
 .v-frame--mobile .m-screen { min-height: 760px; }
 .v-canvas { position: relative; }
 .v-marks { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 90; }
+.v-marks.is-scrolling { visibility: hidden; }
 .v-markgroup { position: absolute; display: inline-flex; gap: 2px; white-space: nowrap; }
 .v-mark { display: inline-block; padding: 0 5px; border-radius: 3px; font: 700 10px/16px -apple-system, "Segoe UI", Arial, sans-serif; white-space: nowrap; }
 .v-mark--new { background: #c2410c; color: #fff; }
